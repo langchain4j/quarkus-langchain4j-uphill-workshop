@@ -20,7 +20,7 @@ public class CustomerSupportAgentWebSocket {
     }
 
     @OnTextMessage
-    public Multi<String> onTextMessage(String message) {
+    public String onTextMessage(String message) {
         return customerSupportAgent.chat(message);
     }
 }
