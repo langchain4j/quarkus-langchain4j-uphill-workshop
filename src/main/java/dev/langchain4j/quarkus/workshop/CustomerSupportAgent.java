@@ -5,7 +5,7 @@ import io.quarkiverse.langchain4j.RegisterAiService;
 import jakarta.enterprise.context.SessionScoped;
 
 @SessionScoped
-@RegisterAiService(tools = BookingTools.class)
+@RegisterAiService(tools = BookingTools.class, retrievalAugmentor = RetrievalAugmentorSupplier.class)
 public interface CustomerSupportAgent {
 
     @SystemMessage("""
