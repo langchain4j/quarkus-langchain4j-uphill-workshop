@@ -38,12 +38,12 @@ Before actually starting the workshop, make sure you have set the OpenAI API
 key as an environment variable: 
 
 ```shell
-export QUARKUS_LANGCHAIN4J_OPENAI_API_KEY=<your-key>
+export OPENAI_API_KEY=<your-key>
 ```
 
-and if you're going to use Cohere for reranking, you'll also need the Cohere API key:
+and if you're going to use Cohere for reranking (step 7), you'll also need the Cohere API key:
 ```shell
-export QUARKUS_LANGCHAIN4J_COHERE_API_KEY=<your-key>
+export COHERE_API_KEY=<your-key>
 ```
 
 Let's get started!
