@@ -64,7 +64,7 @@ This will bring up the page at `localhost:8080`
 The chatbot is calling GPT-3.5 (OpenAI) via the backend. You can test it out and observe that it has memory.
 This is how memory is built up for LLMs
 
-<img src='src/main/resources/images/chatmemory.png' alt='Chat Memory Concept' width = '450'>
+<img src='images/chatmemory.png' alt='Chat Memory Concept' width = '450'>
 
 In the console, you can observe the calls that are made to OpenAI behind the scenes, notice the roles 'user' (`UserMessage`) and 'assistant' (`AiMessage`).
 
@@ -92,11 +92,11 @@ Add a RAG system that allows the chatbot to use relevant parts of our Terms of U
 
 1. Ingestion phase: the documents (files, websites, ...) are loaded, splitted, turned into meaning vectors (embeddings) and stored in an embedding store
 
-<img src='src/main/resources/images/ingestion.png' alt='Ingestion' width = '400'>
+<img src='images/ingestion.png' alt='Ingestion' width = '400'>
 
 2. Retrieval phase: with every user prompt, the relevant fragments of our documents are collected by comparing the meaning vector of the prompt with the vectors in the embedding store. The relevant segments are then passed along to the model together with the original question.
 
-<img src='src/main/resources/images/retrieval.png' alt='Retrieval' width = '400'>
+<img src='images/retrieval.png' alt='Retrieval' width = '400'>
 
 More info on easy RAG in Quarkus can be found [here](https://docs.quarkiverse.io/quarkus-langchain4j/dev/easy-rag.html).
 
