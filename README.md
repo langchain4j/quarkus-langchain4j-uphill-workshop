@@ -18,62 +18,38 @@ Good to know:
 3. For debugging a running Quarkus application, put your breakpoints and select Run > Attach to Process, then select the Quarkus process (in IntelliJ)
 
 ## How this workshop works
-During this workshop we will create an LLM-powered customer support agent chatbot for a car rental company in 7 steps. We start from the base functionality (step 1) and add features in the subsequent steps.
-The starting point is step 1 (commit 95eb682303ac78d2caea3efa5cbfcf7acdca903a) which you can check out as follows:
+During this workshop we will create an LLM-powered customer support agent chatbot for a car rental company in 7 steps. We start from the base functionality (step 1) and add features in the subsequent steps. The result after each step is located in a separate directory (`stepXX`). The final solution is in the `step07` directory.
+
+We recommend to start by checking out the `main` branch and then opening the
+project from `step01` in your IDE and using that directory throughout the
+workshop. The other option is to make a copy of it. If you later need to
+reset to a particular step, either overwrite your working directory with the
+directory for the step you want to reset to, or, in your IDE, open the
+project from the step directory you want to reset to.
+
+If you make any changes to the `stepXX` directories, you can always reset them back by executing:
 ```shell
-git checkout 95eb682303ac78d2caea3efa5cbfcf7acdca903a
+git restore stepXX
 ```
 
-You can try to solve the workshop yourself, but in case you get stuck you can always check out a later commit and continue from there, or check out the final solution using
-```shell
-git checkout main
-```
-
-### If you want to jump to any specific step
-
-Step 1: Basic customer support agent
-```shell
-git checkout 95eb682303ac78d2caea3efa5cbfcf7acdca903a
-```
-Step 2: Customizing model parameters
-```shell
-git checkout 7a3921c12e61439e3d67ecdc887cd4d6a2770f8c
-```
-Step 3: Enabling response streaming
-```shell
-git checkout 8d92ca5d2408bc55b76ce06876802d831510f4d5
-```
-Step 4: Using system message (prompt)
-```shell
-c24cf7c3f3e2c4d740659d6c345c200bb523ee6a
-```
-Step 5: Enabling Easy RAG
-```shell
-git checkout 4b84890523da6a5b44b80b2782a82ba659b31cc8
-```
-Step 6: Using tools
-```shell
-4b84890523da6a5b44b80b2782a82ba659b31cc8
-```
-Step 7: Enabling Advanced RAG: query transformation and re-ranking
-```shell
-git checkout main
-```
-
-Attention! When checking out another commit after you made local changes, you have to stash or trash your changes. Trashing them would work like this:
-```shell
-git restore .
-```
 > **_NOTE:_** This will make you lose all your local changes!
 
+Before actually starting the workshop, make sure you have set the OpenAI API
+key as an environment variable: 
+
+```shell
+export QUARKUS_LANGCHAIN4J_OPENAI_API_KEY=<your-key>
+```
+
+and if you're going to use Cohere for reranking, you'll also need the Cohere API key:
+```shell
+export QUARKUS_LANGCHAIN4J_COHERE_API_KEY=<your-key>
+```
 
 Let's get started!
 
 ## STEP 1
-To get started, make sure you are in step 1
-```shell
-git checkout 95eb682303ac78d2caea3efa5cbfcf7acdca903a
-```
+To get started, make sure you use the `step01` directory, or create a copy of it.
 
 This is a functioning skeleton for a web app with a chatbot. You can run it as follows
 ```shell
