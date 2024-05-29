@@ -62,6 +62,15 @@ quarkus dev
 
 This will bring up the page at `localhost:8080`
 The chatbot is calling GPT-4o (OpenAI) via the backend. You can test it out and observe that it has memory.
+
+Example:
+```
+User: My name is Klaus.
+AI: Hi Klaus, nice to meet you.
+User: What is my name?
+AI: Your name is Klaus.
+```
+
 This is how memory is built up for LLMs
 
 <img src='images/chatmemory.png' alt='Chat Memory Concept' width = '450'>
@@ -83,9 +92,24 @@ The precise meaning of most model parameters is described on the website of Open
 Instead of passing the response as one block of text when it is ready, enable streaming mode. This will allow us to display the reply token per token, while they come in.
 Sorry for what it looks like in the current frontend - do revert it back before moving to step 4 ;)
 
+The problem is that the model does not know it's role.
+Example:
+```
+User: Can I cancel my booking?
+AI: No, I don't know what you are talking about ...
+```
+
 ## STEP 4
 Add a `SystemMessage` so the model knows it is a car rental customer assistant.
-Observe that the tool is now happy to help with bookings, but does make rules up when it comes to cancellation period.
+Observe that the agent is now happy to help with bookings, but does make rules up when it comes to cancellation period.
+
+Example:
+```
+User: Can I cancel my booking?
+AI: Yes, I can help you with that ...
+User: What is the cancellation period?
+AI: [some nonsense]
+```
 
 ## STEP 5
 Add a RAG system that allows the chatbot to use relevant parts of our Terms of Use (you can find them [here](https://github.com/LizeRaes/quarkus-langchain4j-uphill-workshop/blob/main/src/main/resources/data/miles-of-smiles-terms-of-use.txt)) for answering the customers.
@@ -102,6 +126,14 @@ More info on easy RAG in Quarkus can be found [here](https://docs.quarkiverse.io
 
 This is already much better, but it still cannot really perform any booking or cancellation.
 
+Example:
+```
+User: What is the cancellation period?
+AI: ... 11 days ... 4 days ...
+User: Cancel my booking
+AI: [some nonsense]
+```
+
 ## STEP 6
 Let’s give the model two (dummy) tools to do so:
 ```java
@@ -110,6 +142,12 @@ public void cancelBooking(String customerFirstName, String customerSurname, Stri
 ```
 And observe how the chatbot behaves now.
 You can ensure that the methods are called by either logging to console, or by putting a breakpoint.
+
+Example:
+```
+User: Cancel my booking
+AI: Please provide your booking number, name and surname...
+```
 
 ## STEP 7
 Let’s make RAG better: add a RetrievalAugmentor with a QueryCompressor and a Reranker (using your Cohere key)
