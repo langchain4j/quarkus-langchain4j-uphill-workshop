@@ -98,7 +98,7 @@ chmod +x mvnw
 ```
 
 ## STEP 2
-Play around with the model parameters in 'resources/application.properties'
+Play around with the model parameters in 'src/main/resources/application.properties'
 If you don’t have autocompletion, you can search through them in the Quarkus DevUI at `localhost:8080/q/dev` under `Configuration`.
 
 The precise meaning of most model parameters is described on the website of OpenAI: https://platform.openai.com/docs/api-reference/chat/create
