@@ -61,7 +61,7 @@ quarkus dev
 ```
 
 This will bring up the page at `localhost:8080`
-The chatbot is calling GPT-3.5 (OpenAI) via the backend. You can test it out and observe that it has memory.
+The chatbot is calling GPT-4o (OpenAI) via the backend. You can test it out and observe that it has memory.
 This is how memory is built up for LLMs
 
 <img src='images/chatmemory.png' alt='Chat Memory Concept' width = '450'>
