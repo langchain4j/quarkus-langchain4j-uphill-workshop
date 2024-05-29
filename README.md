@@ -55,7 +55,7 @@ This is a functioning skeleton for a web app with a chatbot. You can run it as f
 ```shell
 mvn quarkus:dev
 ```
-or if you installed Quarkus CLI
+or if you installed https://quarkus.io/guides/cli-tooling[Quarkus CLI]
 ```shell
 quarkus dev
 ```
