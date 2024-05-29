@@ -3,7 +3,7 @@
 ### What you need for this workshop
 - JDK 17.0 or later
 - A key for OpenAI API
-- Optional: a key for Cohere API (you can get it here) if you want to add reranking at the end
+- Optional: a key for Cohere API (you can get it [here](https://dashboard.cohere.com/welcome/login?redirect_uri=%2Fapi-keys)) if you want to add reranking at the end
 
 
 Good to know:
