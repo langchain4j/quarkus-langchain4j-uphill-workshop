@@ -9,7 +9,7 @@ Good to know:
 
 1. To run the application in dev mode:
 ```shell script
-./mvnw compile quarkus:dev
+./mvnw quarkus:dev
 ```
 
 2. Open the app at http://localhost:8080/.
@@ -35,7 +35,7 @@ git restore stepXX
 > **_NOTE:_** This will make you lose all your local changes!
 
 Before actually starting the workshop, make sure you have set the OpenAI API
-key as an environment variable: 
+key as an environment variable:
 
 ```shell
 export OPENAI_API_KEY=<your-key>
