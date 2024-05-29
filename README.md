@@ -5,6 +5,7 @@
 - A key for OpenAI API
 - Optional: a key for Cohere API (you can get it here) if you want to add reranking at the end
 
+
 Good to know:
 
 1. To run the application in dev mode:
@@ -47,6 +48,20 @@ export COHERE_API_KEY=<your-key>
 ```
 
 Let's get started!
+
+## STEP 0 
+
+Download the workshop either by cloning the repository on your machine or downloading the zip file:
+
+```
+git clone https://github.com/langchain4j/quarkus-langchain4j-uphill-workshop.git
+```
+
+Or: 
+
+```
+curl -L -o workshop.zip https://github.com/langchain4j/quarkus-langchain4j-uphill-workshop/archive/refs/heads/main.zip
+```
 
 ## STEP 1
 To get started, make sure you use the `step01` directory, or create a copy of it.
