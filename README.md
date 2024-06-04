@@ -142,18 +142,35 @@ Examples to try:
 
 ## STEP 3
 Instead of passing the response as one block of text when it is ready, enable streaming mode. This will allow us to display the reply token per token, while they come in.
-Sorry for what it looks like in the current frontend - do revert it back before moving to step 4 ;)
 
-The problem is that the model does not know it's role.
-Example:
+It is achieved by changing the return type of `CustomerSupportAgent.chat()`
+to the reactive `Multi<String>`. You'll have to update the
+`CustomerSupportAgentWebSocket.onTextMessage()` method accordingly to
+return a `Multi` too.
+
+Unfortunately, the UI used in this workshop does not properly support
+streaming mode at this moment, so it will look somewhat ugly. After
+experimenting, please revert back the changes before moving to Step 4.
+
+In the next step, we will fix the problem where the model still doesn't know 
+its role as a car rental customer assistant:
+
 ```
 User: Can I cancel my booking?
 AI: No, I don't know what you are talking about ...
 ```
 
-## STEP 4
-Add a `SystemMessage` so the model knows it is a car rental customer assistant.
-Observe that the agent is now happy to help with bookings, but does make rules up when it comes to cancellation period.
+## STEP 4 
+
+Add a `SystemMessage` so the model knows it is a car rental customer
+assistant. This is done by adding a `@SystemMessage` annotation to the
+`CustomerSupportAgent.chat()` method. The value of the annotation should be:
+
+> You are a customer support agent of a car rental company 'Miles of Smiles'.
+> You are friendly, polite and concise.
+
+Observe that the agent is now happy to help with bookings, but does make
+rules up when it comes to cancellation period.
 
 Example:
 ```
@@ -166,7 +183,7 @@ AI: [some nonsense]
 ## STEP 5
 Add a RAG system that allows the chatbot to use relevant parts of our Terms of Use (you can find them [here](https://github.com/LizeRaes/quarkus-langchain4j-uphill-workshop/blob/main/src/main/resources/data/miles-of-smiles-terms-of-use.txt)) for answering the customers.
 
-1. Ingestion phase: the documents (files, websites, ...) are loaded, splitted, turned into meaning vectors (embeddings) and stored in an embedding store
+1. Ingestion phase: the documents (files, websites, ...) are loaded, split, turned into meaning vectors (embeddings) and stored in an embedding store
 
 <img src='images/ingestion.png' alt='Ingestion' width = '400'>
 
@@ -176,18 +193,79 @@ Add a RAG system that allows the chatbot to use relevant parts of our Terms of U
 
 More info on easy RAG in Quarkus can be found [here](https://docs.quarkiverse.io/quarkus-langchain4j/dev/easy-rag.html).
 
-This is already much better, but it still cannot really perform any booking or cancellation.
+To add RAG to the application, let's use the Easy RAG extension:
 
-Example:
+```
+<dependency>
+    <groupId>io.quarkiverse.langchain4j</groupId>
+    <artifactId>quarkus-langchain4j-easy-rag</artifactId>
+    <version>${quarkus-langchain4j.version}</version>
+</dependency>
+```
+
+Add the following configuration to `application.properties`:
+
+```
+quarkus.langchain4j.easy-rag.path=src/main/resources/data
+quarkus.langchain4j.easy-rag.max-segment-size=100
+quarkus.langchain4j.easy-rag.max-overlap-size=25
+quarkus.langchain4j.easy-rag.max-results=3
+```
+
+Explanation:
+
+- `quarkus.langchain4j.easy-rag.path` is the path to the directory with the
+  documents. This is the only mandatory property.
+- `quarkus.langchain4j.easy-rag.max-segment-size` is the maximum size of a
+  segment in tokens. 
+- `quarkus.langchain4j.easy-rag.max-overlap-size` is the maximum size of the
+  overlap (between adjacent segments) in tokens.
+- `quarkus.langchain4j.easy-rag.max-results` is the maximum number of
+  segments to return while searching for relevant segments.
+
+Now let's try to chat with the bot:
+
 ```
 User: What is the cancellation period?
 AI: ... 11 days ... 4 days ...
-User: Cancel my booking
-AI: [some nonsense]
+```
+
+Let's now also have a look at Dev UI, because it has some nice features that
+allow you to see deeper into how RAG works. Open the Dev UI either by
+pressing 'd' in the terminal where Quarkus is running, or by opening
+`localhost:8080/q/dev` in your browser.
+
+Let's try to talk to the chatbot through the Dev UI interface. Click the
+'Chat' button inside the 'LangChain4j' card. The system message should get
+populated automatically. Make sure the 'Enable RAG' checkbox is checked, and
+try asking the same question again. You will notice that when the response
+arrives, your message will be replaced by the augmented message, containing
+the extra context added by the retrieval augmentor.
+
+<img src='images/devui_rag_chat.png' alt='Dev UI chat with RAG' width = '700'>
+
+Another interesting feature is being able to search just for relevant
+embeddings to any question, without actually submitting the question to the
+chatbot. This is under the 'Embedding store' link in the 'LangChain4j' card.
+In the bottom of the page, there's a form titled 'Search for relevant
+embeddings'. Try searching for 'cancellation period' and you will see that
+segments that talk about the cancellation period should pop up at the
+top and have a higher relevance score.
+
+<img src='images/devui_rag_embeddings.png' alt='Embedding store search' width = '800'>
+
+Note: if you want to log the requests and responses of the embedding model, 
+set these two properties, but be aware that they are very long and make
+the log hard to read:
+
+```
+quarkus.langchain4j.openai.embedding-model.log-requests=true
+quarkus.langchain4j.openai.embedding-model.log-responses=true
 ```
 
 ## STEP 6
-Let’s give the model two (dummy) tools to do so:
+Let’s give the model two (dummy) tools to work with bookings:
+
 ```java
 public Booking getBookingDetails(String customerFirstName, String customerSurname, String bookingNumber) throws BookingNotFoundException
 public void cancelBooking(String customerFirstName, String customerSurname, String bookingNumber) throws BookingNotFoundException, BookingCannotBeCancelledException
