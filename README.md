@@ -264,20 +264,136 @@ quarkus.langchain4j.openai.embedding-model.log-responses=true
 ```
 
 ## STEP 6
-Let’s give the model two (dummy) tools to work with bookings:
+
+Now let's give the bot the ability to work with customers and their bookings.
+We won't use a real database, only a simple CDI bean that imitates a database.
+
+Create records for Booking and Customer:
+
+```
+public record Booking(String bookingNumber, 
+                      LocalDate dateFrom, 
+                      LocalDate dateTo, 
+                      Customer customer) {
+}
+
+public record Customer(String name, 
+                       String surname) {
+}
+```
+
+Create an empty application-scoped bean named `BookingService` to act as the repository of bookings.
+Then create a class `BookingTools` that holds the tools for working with bookings and injects the `BookingService`:
 
 ```java
-public Booking getBookingDetails(String customerFirstName, String customerSurname, String bookingNumber) throws BookingNotFoundException
-public void cancelBooking(String customerFirstName, String customerSurname, String bookingNumber) throws BookingNotFoundException, BookingCannotBeCancelledException
+@ApplicationScoped
+public class BookingTools {
+
+    @Inject
+    BookingService bookingService;
+
+    @Tool
+    public Booking getBookingDetails(String bookingNumber, String customerName, String customerSurname) {
+        System.out.println("==========================================================================================");
+        System.out.printf("[Tool]: Getting details for booking %s for %s %s...%n", bookingNumber, customerName, customerSurname);
+        System.out.println("==========================================================================================");
+
+        return bookingService.getBookingDetails(bookingNumber, customerName, customerSurname);
+    }
+
+    @Tool
+    public void cancelBooking(String bookingNumber, String customerName, String customerSurname) {
+        System.out.println("==========================================================================================");
+        System.out.printf("[Tool]: Cancelling booking %s for %s %s...%n", bookingNumber, customerName, customerSurname);
+        System.out.println("==========================================================================================");
+
+        bookingService.cancelBooking(bookingNumber, customerName, customerSurname);
+    }
+}
 ```
-And observe how the chatbot behaves now.
-You can ensure that the methods are called by either logging to console, or by putting a breakpoint.
+
+Also don't forget to make these tools available to the AI Service (you have to
+add the `tools = BookingTools.class` parameter to the `@RegisterAiService`
+annotation).
+
+Try to add and implement the required methods in the `BookingService` bean.
+You can choose what bookings should be available out of the box and add them
+inside a `@PostConstruct` method.
+
+An example solution follows:
+
+```java
+@ApplicationScoped
+public class BookingService {
+
+    private List<Booking> bookings = new ArrayList<>();
+
+    @PostConstruct
+    public void initialize() {
+        // can't be cancelled because it is shorter than 4 days
+        Booking booking1 = new Booking("123-456",
+                LocalDate.now().plusDays(17),
+                LocalDate.now().plusDays(19),
+                new Customer("Klaus", "Heisler"));
+        bookings.add(booking1);
+        // can't be cancelled because it starts in less than 11 days
+        Booking booking2 = new Booking("111-111",
+                LocalDate.now().plusDays(2),
+                LocalDate.now().plusDays(8),
+                new Customer("David", "Wood"));
+        bookings.add(booking2);
+        // can be cancelled
+        Booking booking3 = new Booking("222-222",
+                LocalDate.now().plusDays(12),
+                LocalDate.now().plusDays(21),
+                new Customer("Martin", "Oak"));
+        bookings.add(booking3);
+    }
+
+    public void cancelBooking(String bookingNumber, String customerName, String customerSurname) {
+        Booking booking = getBookingDetails(bookingNumber, customerName, customerSurname);
+        // too late to cancel
+        if(booking.dateFrom().minusDays(11).isBefore(LocalDate.now())) {
+            throw new BookingCannotBeCancelledException(bookingNumber);
+        }
+        // too short to cancel
+        if(booking.dateTo().minusDays(4).isBefore(booking.dateFrom())) {
+            throw new BookingCannotBeCancelledException(bookingNumber);
+        }
+        bookings.remove(booking);
+    }
+
+    public Booking getBookingDetails(String bookingNumber, String customerName, String customerSurname) {
+        return bookings.stream()
+                .filter(booking -> booking.bookingNumber().equals(bookingNumber))
+                .filter(booking -> booking.customer().name().equals(customerName))
+                .filter(booking -> booking.customer().surname().equals(customerSurname))
+                .findAny()
+                .orElseThrow(() -> new BookingNotFoundException(bookingNumber));
+    }
+}
+```
+
+Observe how the chatbot behaves now.
+You can ensure that the tool methods are called by looking at the console logs.
 
 Example:
 ```
 User: Cancel my booking
 AI: Please provide your booking number, name and surname...
 ```
+
+The sample solution contains three bookings created automatically at start:
+- Booking for Klaus Heisler, number 123-456: can't be cancelled because it is shorter than 4 days
+- Booking for David Wood, number 111-111: can't be cancelled because it starts in less than 11 days
+- Booking for Martin Oak, number 222-222: can be cancelled
+
+Note that we have applied safeguards for the cancellation period and the
+minimum booking length in the example solution. In some cases, the LLM may
+apply these automatically because we still have RAG in place and the LLM can
+deduce these rules from the terms of use, and skip executing the
+`cancelBooking` method. But generally, it is safer to have these checks in
+place in the backend as well and not rely on the model to apply them.
 
 ## STEP 7
 Let’s make RAG better: add a RetrievalAugmentor with a QueryCompressor and a Reranker (using your Cohere key)
