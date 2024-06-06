@@ -1,35 +1,58 @@
 package dev.langchain4j.quarkus.workshop.booking;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @ApplicationScoped
 public class BookingService {
 
-    public Booking getBookingDetails(String bookingNumber, String customerName, String customerSurname) {
-        ensureExists(bookingNumber, customerName, customerSurname);
+    private List<Booking> bookings = new ArrayList<>();
 
-        // Imitating retrieval from DB
-        LocalDate dateFrom = LocalDate.now().plusDays(1);
-        LocalDate dateTo = LocalDate.now().plusDays(3);
-        Customer customer = new Customer(customerName, customerSurname);
-        return new Booking(bookingNumber, dateFrom, dateTo, customer);
+    @PostConstruct
+    public void initialize() {
+        // can't be cancelled because it is shorter than 4 days
+        Booking booking1 = new Booking("123-456",
+                LocalDate.now().plusDays(17),
+                LocalDate.now().plusDays(19),
+                new Customer("Klaus", "Heisler"));
+        bookings.add(booking1);
+        // can't be cancelled because it starts in less than 11 days
+        Booking booking2 = new Booking("111-111",
+                LocalDate.now().plusDays(2),
+                LocalDate.now().plusDays(8),
+                new Customer("David", "Wood"));
+        bookings.add(booking2);
+        // can be cancelled
+        Booking booking3 = new Booking("222-222",
+                LocalDate.now().plusDays(12),
+                LocalDate.now().plusDays(21),
+                new Customer("Martin", "Oak"));
+        bookings.add(booking3);
     }
 
     public void cancelBooking(String bookingNumber, String customerName, String customerSurname) {
-        ensureExists(bookingNumber, customerName, customerSurname);
-
-        // Imitating cancellation
-        throw new BookingCannotBeCancelledException(bookingNumber);
+        Booking booking = getBookingDetails(bookingNumber, customerName, customerSurname);
+        // too late to cancel
+        if(booking.dateFrom().minusDays(11).isBefore(LocalDate.now())) {
+            throw new BookingCannotBeCancelledException(bookingNumber);
+        }
+        // too short to cancel
+        if(booking.dateTo().minusDays(4).isBefore(booking.dateFrom())) {
+            throw new BookingCannotBeCancelledException(bookingNumber);
+        }
+        bookings.remove(booking);
     }
 
-    private void ensureExists(String bookingNumber, String customerName, String customerSurname) {
-        // Imitating check
-        if (!(bookingNumber.equals("123-456")
-                && customerName.equals("Klaus")
-                && customerSurname.equals("Heisler"))) {
-            throw new BookingNotFoundException(bookingNumber);
-        }
+    public Booking getBookingDetails(String bookingNumber, String customerName, String customerSurname) {
+        return bookings.stream()
+                .filter(booking -> booking.bookingNumber().equals(bookingNumber))
+                .filter(booking -> booking.customer().name().equals(customerName))
+                .filter(booking -> booking.customer().surname().equals(customerSurname))
+                .findAny()
+                .orElseThrow(() -> new BookingNotFoundException(bookingNumber));
     }
 }
